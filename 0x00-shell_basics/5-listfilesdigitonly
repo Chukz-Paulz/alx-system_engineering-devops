@@ -1,4 +1,2 @@
 #!/bin/bash
 ls -na
-mkdir temp/my_first_directory
-ls -na
