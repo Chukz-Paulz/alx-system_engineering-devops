@@ -1,2 +1,1 @@
-my first script readme file
-just to verify the second line
+My Shell permission readme
