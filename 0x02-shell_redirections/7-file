@@ -1,2 +1,2 @@
 #!/bin/bash
-echo "Best School" > '\*\'"Best\ School"\'\\*\$\?\\*\*\*\*\*:\)' ; if [ -f '\*\'"Best\ School"\'\\*\$\?\\*\*\*\*\*:\)' ]; then cat '\*\'"Best\ School"\'\\*\$\?\\*\*\*\*\*:\)'; fi
+echo "Best School" > '\*\'"Best\ School"\'\\*\$\?\\*\*\*\*\*:\)'
