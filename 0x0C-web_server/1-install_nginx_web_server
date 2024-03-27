@@ -1,39 +1,21 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# Installs Nginx with the following configurations:
+#+    Listens on port 80.
+#+    Returns a page containing "Holberton School" when queried
+#++    at the root with a curl GET request.
 
-# Update package index
 apt-get update
-
-# Install nginx
 apt-get install -y nginx
 
-# Create index.html file with "Hello World!" content
-echo "Hello World!" > /var/www/html/index.html
-
-# Configure nginx to listen on port 80 and serve the index.html file
-cat > /etc/nginx/sites-available/default <<EOF
-server {
-    listen 80 default_server;
-    listen [::]:80 default_server;
-
-    root /var/www/html;
-    index index.html index.htm index.nginx-debian.html;
-
-    server_name _;
-
-    location / {
-        try_files \$uri \$uri/ =404;
-    }
+mkdir /etc/nginx/html
+touch /etc/nginx/html/index.html
+echo "Hello World!" > /etc/nginx/html/index.html
+printf %s "server {
+     listen      80 default_server;
+     listen      [::]:80 default_server;
+     root        /etc/nginx/html;
+     index       index.html index.htm;
 }
-EOF
+" > /etc/nginx/sites-available/default
 
-# Restart nginx
-killall -s HUP nginx
-
-# Verify nginx is running
-ps aux | grep nginx | grep -v grep >/dev/null
-
-if [ $? -eq 0 ]; then
-    echo "Nginx has been installed and configured successfully."
-else
-    echo "Nginx installation or configuration failed. Please check the logs."
-fi
+service nginx restart
