@@ -1,26 +1,51 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Update package lists
-sudo apt-get update
+apt-get update || { echo "Failed to update package lists"; exit 1; }
 
-# Install HAProxy
-sudo apt-get install -y haproxy
+# Install HAProxy version 1.8
+apt-get install -y software-properties-common
+add-apt-repository -y ppa:vbernat/haproxy-1.8
+apt-get update
+apt-get install -y haproxy=1.8.*
+
+# Enable management via init script
+echo "ENABLED=1" >> /etc/default/haproxy
+
+# Backup the original configuration file and create a new one
+mv /etc/haproxy/haproxy.cfg{,.original}
+touch /etc/haproxy/haproxy.cfg
 
 # Configure HAProxy
-sudo tee /etc/haproxy/haproxy.cfg > /dev/null <<'EOF'
-frontend http_front
-    bind *:80
-    stats uri /haproxy?stats
-    default_backend http_back
+cat <<EOF > /etc/haproxy/haproxy.cfg
+global
+    log 127.0.0.1 local0 notice
+    maxconn 2000
+    user haproxy
+    group haproxy
 
-backend http_back
+defaults
+    log     global
+    mode    http
+    option  httplog
+    option  dontlognull
+    retries 3
+    option redispatch
+    timeout connect  5000
+    timeout client  10000
+    timeout server  10000
+
+listen hbnb
+    bind 0.0.0.0:80
+    mode http
+    stats enable
+    stats uri /haproxy?stats
     balance roundrobin
-    server web-01 [STUDENT_ID]-web-01:80 check
-    server web-02 [STUDENT_ID]-web-02:80 check
+    option httpclose
+    option forwardfor
+    server [STUDENT_ID]-web-01 [STUDENT_ID]-web-01:80 check
+    server [STUDENT_ID]-web-02 [STUDENT_ID]-web-02:80 check
 EOF
 
-# Restart HAProxy to apply changes
-sudo systemctl restart haproxy
-
-# Enable HAProxy service to be managed via init script
-sudo systemctl enable haproxy
+# Start HAProxy service
+systemctl start haproxy
