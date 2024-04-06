@@ -31,6 +31,7 @@ backend holberton_servers
     mode http
     server web1 54.83.139.137:80 check
     server web2 3.85.33.90:80 check
+    server lb-01 52.87.222.68:80 check	
 
 listen stats
     bind :9000
