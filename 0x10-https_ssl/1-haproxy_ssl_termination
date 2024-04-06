@@ -1,40 +1,40 @@
 global
-    log     /dev/log local0
-    maxconn 2048
-    user    haproxy
-    group   haproxy
-    tune.ssl.default-dh-param 2048
+    log /dev/log local0
+    log /dev/log local1 notice
+    chroot /var/lib/haproxy
+    stats socket /run/haproxy/admin.sock mode 660 level admin
+    stats timeout 30s
+    user haproxy
+    group haproxy
+    daemon
 
 defaults
     log     global
     mode    http
     option  httplog
     option  dontlognull
-    retries 3
-    option  redispatch
-    timeout connect  5000
-    timeout client  10000
-    timeout server  10000
-    option  forwardfor
-    option  http-server-close
+    timeout connect 5000
+    timeout client  50000
+    timeout server  50000
 
-frontend www-http
-    bind   0.0.0.0:80
-    reqadd X-Forwarded-Proto:\ http
-    default_backend www-backend
-
-frontend www-https
-    bind   0.0.0.0:443 ssl crt /etc/haproxy/certs/www.bdbnb.site.pem
+frontend http_front
+    bind *:80
+    bind *:443 ssl crt /etc/ssl/certs/www.chukzpaulz.tech.pem
+    http-request redirect scheme https unless { ssl_fc }
     reqadd X-Forwarded-Proto:\ https
-    acl    letsencrypt-acl path_beg /.well-known/acme-challenge/
-    use_backend letsencrypt-backend if letsencrypt-acl
-    default_backend www-backend
+    mode http
+    option http-server-close
+    acl is_holberton hdr(host) -i www.example.com
+    use_backend holberton_servers if is_holberton
 
-backend www-backend
-    balance  roundrobin
-    redirect scheme https if !{ ssl_fc }
-    server 375-web-01 104.196.168.90:80 check
-    server 375-web-02 35.196.46.172:80 check
+backend holberton_servers
+    mode http
+    server web1 54.83.139.137:80 check
+    server web2 3.85.33.90:80 check
 
-backend letsencrypt-backend
-    server letsencrypt 127.0.0.1:54321
+listen stats
+    bind :9000
+    stats enable
+    stats uri /
+    stats hide-version
+    stats auth admin:admin_password
